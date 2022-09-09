@@ -1,10 +1,10 @@
 import { configureStore } from '@reduxjs/toolkit'
-import { pokeApi } from './api/api'
+import { jsonApi } from './api/api'
 
 export const store = configureStore({
 	reducer: {
-		[pokeApi.reducerPath]: pokeApi.reducer
+		[jsonApi.reducerPath]: jsonApi.reducer
 	},
 	middleware: (getDefaultMiddleware) =>
-		getDefaultMiddleware().concat(pokeApi.middleware)
+		getDefaultMiddleware().concat(jsonApi.middleware)
 })

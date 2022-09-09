@@ -1,54 +1,51 @@
-import { useGetPokemonQuery, useGetPokemonsQuery } from './api/api'
+import {
+	useGetPostsQuery,
+	useGetPostByIdQuery,
+	PostsType,
+	useAddPostMutation
+} from './api/api'
 
-import { styled } from '@stitches/react'
-
-type PropPokemon = {
-	name: string
+type PostsProps = {
+	id: number
 }
 
-const StyledPokemonItem = styled('div', {
-	width: '24%',
+const newPost: PostsType = {
+	userId: 1,
+	id: 99999,
+	title: 'test',
+	body: 'add post'
+}
 
-	img: {
-		width: '100%'
-	},
+const Button = () => {
+	const [addPost, { isSuccess: hasAdded }] = useAddPostMutation()
 
-	p: {
-		textAlign: 'center'
+	const handleClick = () => {
+		addPost(JSON.stringify(newPost))
 	}
-})
 
-const PokemonItem = ({ name }: PropPokemon) => {
-	const { data } = useGetPokemonQuery(name, { skip: !name })
-
-	return (
-		<StyledPokemonItem>
-			<img
-				src={data?.sprites.other['official-artwork'].front_default}
-				alt=""
-			/>
-			<p>{data?.name}</p>
-		</StyledPokemonItem>
-	)
+	return <button onClick={handleClick}>Add Post</button>
 }
 
-const StyledPokemonList = styled('ul', {
-	display: 'flex',
-	flexWrap: 'wrap',
-	gap: '20px 10px'
-})
+const PostItem = ({ id }: PostsProps) => {
+	const { data: post } = useGetPostByIdQuery(id, { skip: !id })
+
+	return <li>{post?.title}</li>
+}
 
 function App() {
-	const { data, isLoading } = useGetPokemonsQuery()
+	const { data: postId, isLoading } = useGetPostsQuery()
 
 	if (isLoading) return <div>...Loading</div>
 
 	return (
-		<StyledPokemonList>
-			{data?.map((pokemon) => (
-				<PokemonItem key={pokemon.name} name={pokemon.name} />
-			))}
-		</StyledPokemonList>
+		<>
+			<Button />
+			<ul>
+				{postId?.map((id) => (
+					<PostItem id={id} />
+				))}
+			</ul>
+		</>
 	)
 }
 

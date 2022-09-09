@@ -1,35 +1,48 @@
 import { createApi, fetchBaseQuery } from '@reduxjs/toolkit/query/react'
 
-type PokemonListType = {
-	name: string
-	url: string
-}
-
-type PokemonType = {
-	name: string
+export type PostsType = {
+	userId: number
 	id: number
-	sprites: {
-		other: {
-			'official-artwork': {
-				front_default: string
-			}
-		}
-	}
+	title: string
+	body: string
 }
 
-export const pokeApi = createApi({
-	reducerPath: 'pokeApi',
-	baseQuery: fetchBaseQuery({ baseUrl: 'https://pokeapi.co/api/v2/' }),
+export const jsonApi = createApi({
+	reducerPath: 'jsonApi',
+	baseQuery: fetchBaseQuery({
+		baseUrl: 'http://localhost:3000'
+	}),
+	tagTypes: ['Post'],
 	endpoints: (builder) => ({
-		getPokemons: builder.query<PokemonListType[], void>({
-			query: () => 'pokemon',
-			transformResponse: (response: { results: PokemonListType[] }) =>
-				response.results
+		getPosts: builder.query<number[], void>({
+			query: () => '/posts',
+			transformResponse: (response: PostsType[]) =>
+				response.map((post) => post.id),
+			providesTags: (ids) =>
+				ids
+					? [
+							...ids.map((id) => ({ type: 'Post' as const, id })),
+							{ type: 'Post', id: 'all' }
+					  ]
+					: [{ type: 'Post', id: 'all' }]
 		}),
-		getPokemon: builder.query<PokemonType, string>({
-			query: (name) => `pokemon/${name}`
+		getPostById: builder.query<PostsType, number>({
+			query: (id) => `posts/${id}`,
+			providesTags: (post) => [{ type: 'Post', id: post?.id }]
+		}),
+		addPost: builder.mutation<PostsType, string>({
+			query: (body) => ({
+				url: '/posts',
+				method: 'POST',
+				body,
+				headers: {
+					'Content-type': 'application/json; charset=UTF-8'
+				}
+			}),
+			invalidatesTags: () => [{ type: 'Post', id: 'all' }]
 		})
 	})
 })
 
-export const { useGetPokemonsQuery, useGetPokemonQuery } = pokeApi
+export const { useGetPostsQuery, useGetPostByIdQuery, useAddPostMutation } =
+	jsonApi
